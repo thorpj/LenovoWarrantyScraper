@@ -1,6 +1,8 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
+gem 'rake'
 
-# Specify your gem's dependencies in LenovoWarrantyScraper.gemspec
-gemspec
+gem 'minitest', group: :test
+gem 'minitest-reporters', group: :test
+gem 'selenium-webdriver'
+gem 'byebug'
