@@ -1,17 +1,15 @@
 class Element
   attr_reader :value
-  def initialize(value, key: :id, wait: 0)
+  def initialize(value, key: :xpath, wait: 0)
     @value = value
     sleep(wait) if wait > 0
     if key == :id
-      @element = DotBot.driver.find_element(id: value)
+      @element = LenovoWarrantyScraper.driver.find_element(id: value)
     elsif key == :xpath
-      @element = DotBot.driver.find_element(xpath: value)
+      @element = LenovoWarrantyScraper.driver.find_element(xpath: value)
     else
-      @element = DotBot.driver.find_element(name: value)
+      @element = LenovoWarrantyScraper.driver.find_element(name: value)
     end
-
-    # DotBot.elements[value] = @element unless DotBot.elements.include? @element
   end
 
   def click

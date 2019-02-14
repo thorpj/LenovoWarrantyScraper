@@ -1,5 +1,16 @@
+require 'bundler/setup'
+require 'yaml'
+require 'selenium-webdriver'
+require 'date'
+require 'logger'
+require 'byebug'
+require 'pp'
+
 require_relative 'LenovoWarrantyScraper/version'
 require_relative 'LenovoWarrantyScraper/elements'
+require_relative 'LenovoWarrantyScraper/scraper'
+
+
 
 module LenovoWarrantyScraper
   class Error < StandardError; end
@@ -8,32 +19,7 @@ module LenovoWarrantyScraper
   class << self
     attr_accessor :driver, :wait, :elements
   end
+  scraper = LenovoWarrantyScraper::Scraper.new
 
-  DotBot.elements = {}
 
-  class Scraper
-    attr_reader :location
-
-    def initialize(location)
-      @url = "https://csp.lenovo.com/irj/portal"
-      @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
-      @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
-
-      if @settings['headless']
-        options = Selenium::WebDriver::Firefox::Options.new(args: ['-headless'])
-        @driver = Selenium::WebDriver.for(:firefox, options: options)
-      else
-        @driver = Selenium::WebDriver.for(:firefox)
-      end
-
-      @driver.manage.window.resize_to(1000,800)
-      DotBot.driver = @driver
-      DotBot.wait = @wait
-      @driver.manage.timeouts.implicit_wait = 10 # seconds
-      @wait = Selenium::WebDriver::Wait.new(timeout: 10) # seconds
-      @driver.navigate.to @url
-      login_form
-      new_booking_form
-    end
-  end
 end
