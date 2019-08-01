@@ -19,7 +19,14 @@ module LenovoWarrantyScraper
       LenovoWarrantyScraper.wait = @wait
       @driver.navigate.to @url
       login_form
+      make_claim
+
+    end
+
+    def make_claim
       external_claim_admin_tab
+      select_location
+      # select_service_type("l")
     end
 
     def login_form
@@ -29,16 +36,17 @@ module LenovoWarrantyScraper
     end
 
     def external_claim_admin_tab
-      Element.new("//a[text()='External Claim Admin']", wait: 3).click
+      Element.new("//a[text()='External Claim Admin']", wait: 5).click
     end
 
     def select_location
-      Element.new("//span[text()='Select Location']".click)
+      byebug
+      Element.new("//span[text()='Select Location']/..", wait: 3).click
       Element.new("//span[text()='Select']").click
     end
 
     def select_service_type(service_type)
-      Element.new()
+      Element.new("aaaa.EntitleClaimView.ServiceType", key: :id).send_keys "Customer Ltd Warranty"
     end
   end
 end
