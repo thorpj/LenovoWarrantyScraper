@@ -6,5 +6,5 @@
 /pkg/
 /spec/reports/
 /tmp/
-config/secrets.*
+config/secrets.yaml
 .idea/
