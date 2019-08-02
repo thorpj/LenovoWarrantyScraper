@@ -66,6 +66,8 @@ module LenovoWarrantyScraper
 
       rows = @driver.find_elements(xpath: '//*[@id="aaaa.ProductSelectPopupView.ProductListTable-contentTBody"]//tr')
 
+
+      sleep(@explicit_wait_time)
       headings = []
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.ProductSelectPopupView.ProductListTable-contentTBody\"]//tr[1]/th/div/span/span")
       headings_cells.each { |cell| headings << cell.text}
@@ -77,24 +79,31 @@ module LenovoWarrantyScraper
       # row   /tr[3]
       # text /tr[3]/td[7]/span
 
+      table = []
+
       rows.each_with_index do |_,index|
         next if index <= 1
         # row = @driver.find_element(xpath: "//*[@id=\"aaaa.ProductSelectPopupView.ProductListTable-contentTBody\"]//tr[#{index}]")
         cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.ProductSelectPopupView.ProductListTable-contentTBody\"]//tr[#{index}]/td/span")
 
-        unless cells.nil?
+        unless cells.empty?
+          table_entry = {}
           puts index
-          cells.each { |cell| puts cell.text }
+          cells.zip(headings).each { |cell, heading|
+            table_entry[heading] = cell.text
+            puts cell.text
+          }
+          table << table_entry
         end
-        # t = row.attribute("udat").start_with? "ProductListForTable"
+      end
+      # t = row.attribute("udat").start_with? "ProductListForTable"
 
         # if t
         #   cells.each do |cell|
         #     puts cell.text
         #   end
         # end
-      end
-
+      byebug
       print 1
 
 
