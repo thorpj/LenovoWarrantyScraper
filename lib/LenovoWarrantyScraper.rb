@@ -7,8 +7,10 @@ require 'byebug'
 require 'pp'
 
 require_relative 'LenovoWarrantyScraper/version'
+require_relative 'LenovoWarrantyScraper/runner'
 require_relative 'LenovoWarrantyScraper/elements'
 require_relative 'LenovoWarrantyScraper/scraper'
+require_relative 'LenovoWarrantyScraper/state'
 
 
 

@@ -1,3 +1,7 @@
 headless: false
 service_type: 'Labour Only Claim'
-serial_number: MP1C7KAZ
+service_delivery_type: "On-Site"
+customer_search_field: 'Company'
+input_csv_path: 'config/serial_number_input.csv'
+status_csv_path: 'config/status.csv'
+url: "https://csp.lenovo.com/irj/portal"
