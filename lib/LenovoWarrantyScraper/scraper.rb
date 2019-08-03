@@ -14,12 +14,11 @@ module LenovoWarrantyScraper
 
       @driver.manage.window.resize_to(1000,800)
       @driver.manage.timeouts.implicit_wait = 10 # seconds
-      @explicit_wait_time = 4.5
+      @explicit_wait_time = 5
       @wait = Selenium::WebDriver::Wait.new(timeout: @explicit_wait_time) # seconds
       LenovoWarrantyScraper.driver = @driver
       LenovoWarrantyScraper.wait = @wait
-      @driver.navigate.to @url
-      login_form
+
     end
 
     def switch_to_external_claim_admin_iframe
@@ -36,6 +35,8 @@ module LenovoWarrantyScraper
     end
 
     def make_claim(serial_number)
+      navigate_to_url
+      login_form
       external_claim_admin_tab
       select_location
       select_service_type
@@ -49,6 +50,18 @@ module LenovoWarrantyScraper
       enter_failure_description
       enter_comments
       # submit_claim
+      warranty_reference = read_warranty_reference
+      quit
+
+      warranty_reference
+    end
+
+    def quit
+      @driver.quit
+    end
+
+    def navigate_to_url
+      @driver.navigate.to @url
     end
 
     def login_form
@@ -115,13 +128,17 @@ module LenovoWarrantyScraper
       end
 
       latest_warranty_item = table.max_by { |k,v| k['End Date']}
+      in_warranty = date_is_not_past(latest_warranty_item['End Date'])
+      unless in_warranty
+        raise LenovoWarrantyScraper::OutOfWarrantyError
+      end
       index = (latest_warranty_item['index']).to_s
       Element.new("//*[@id=\"aaaa.ProductSelectPopupView.ProductListTable-contentTBody\"]//tr[#{index}]/td[7]/span", key: :xpath).click
       switch_to_external_claim_admin_iframe
     end
 
     def select_service_date
-      date = Time.now.strftime("%d.%m.%Y")
+      date = Time.now.strftime(@settings['date_format'])
       if @settings.key? "service_date"
         date = @settings['service_date']
       end
@@ -175,5 +192,18 @@ module LenovoWarrantyScraper
     def submit_claim
       Element.new("aaaa.ClaimCompleAndSubmitView.Submit", key: :id, wait: @explicit_wait_time).click
     end
+
+    def read_warranty_reference
+      #TODO
+      ;
+    end
+
+    def date_is_not_past(date)
+      date = Time.strptime(date, @settings['date_format'])
+      date >= Time.now
+    end
+  end
+
+  class OutOfWarrantyError < StandardError
   end
 end
