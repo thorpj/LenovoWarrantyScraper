@@ -1,7 +1,15 @@
-headless: false
+headless: true
 service_type: 'Labour Only Claim'
 service_delivery_type: "On-Site"
 customer_search_field: 'Company'
 input_csv_path: 'config/serial_number_input.csv'
-status_csv_path: 'config/status.csv'
+state_csv_path: 'config/status.csv'
 url: "https://csp.lenovo.com/irj/portal"
+max_attempts: 5
+failure_sleep_times:
+  1: 0.25
+  2: 1
+  3: 2
+  4: 5
+  5: 10
+date_format: '%d.%m.%Y'

@@ -21,7 +21,10 @@ module LenovoWarrantyScraper
   class << self
     attr_accessor :driver, :wait, :elements
   end
-  scraper = LenovoWarrantyScraper::Scraper.new
+  # scraper = LenovoWarrantyScraper::Scraper.new
+  runner = LenovoWarrantyScraper::Runner.new
+
+  runner.run
 
 
 end
