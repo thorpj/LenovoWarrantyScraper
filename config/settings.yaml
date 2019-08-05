@@ -13,3 +13,4 @@ failure_sleep_times:
   4: 5
   5: 10
 date_format: '%d.%m.%Y'
+log_path: 'app.log'

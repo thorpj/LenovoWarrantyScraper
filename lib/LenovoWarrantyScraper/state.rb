@@ -92,9 +92,11 @@ module LenovoWarrantyScraper
     def update_attribute(serial_number, attribute, value)
       index = find_index(serial_number)
       if index.nil?
+        $logger.debug "Unable to update attribute - serial not found. Creating now."
         add_new(serial_number)
       else
         @state[index][attribute] = value
+        $logger.debug "Updating #{attribute} to #{value}"
       end
     end
 

@@ -12,6 +12,7 @@ module LenovoWarrantyScraper
     def run
       @state_manager.input.each do |serial_number|
         serial_number = serial_number[0]
+        $logger.info "Processing serial number #{serial_number}"
         @serial_number = serial_number
         submit_claim
       end
@@ -29,28 +30,32 @@ module LenovoWarrantyScraper
       status = @state_manager.get_attribute(@serial_number, 'status')
       warranty_reference = @state_manager.get_attribute(@serial_number, 'warranty_reference')
       if status.nil? || warranty_reference.nil?
+          $logger.debug "Lodging claim"
           while attempts < @settings['max_attempts']
             begin
-              # @scraper.make_claim(@serial_number)
-              warranty_reference = '7038'
+              warranty_reference = @scraper.make_claim(@serial_number)
               unless warranty_reference.nil? || warranty_reference == ''
                 update_status(:submitted)
                 update_warranty_reference(warranty_reference)
+                $logger.debug "Claim successful"
                 break
               end
             rescue OutOfWarrantyError
+              $logger.debug "Failed to submit claim, retrying"
               update_status(:out_of_warranty)
               break
             rescue
-              ;
+              $logger.debug "Failed to submit claim, retrying"
             end
             attempts += 1
             failure_sleep(attempts)
           end
-
         if attempts >= 5
           update_status(:failed)
+          $logger.debug "Failed to submit claim"
         end
+      else
+        $logger.debug "Claim already submitted"
       end
     end
 

@@ -8,3 +8,5 @@
 /tmp/
 config/secrets.yaml
 .idea/
+config/*.csv
+app.log
