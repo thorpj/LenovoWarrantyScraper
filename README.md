@@ -1,28 +1,18 @@
 # LenovoWarrantyScraper
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/LenovoWarrantyScraper`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Install Firefox Geckodriver
+https://chocolatey.org/packages/selenium-gecko-driver
 
-```ruby
-gem 'LenovoWarrantyScraper'
-```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install LenovoWarrantyScraper
 
 ## Usage
 
-TODO: Write usage instructions here
+* Copy config/secrets.yaml.sample to config/secrets.yaml and configure
+* Copy config/serial_number_input.csv.sample to config/serial_number_input.csv
+* Copy config/status.csv.sample to config/status.csv
 
 ## Development
 

@@ -1,3 +1,5 @@
+require 'time'
+
 module LenovoWarrantyScraper
   class Scraper
     def initialize
@@ -14,7 +16,7 @@ module LenovoWarrantyScraper
 
       @driver.manage.window.resize_to(1000,800)
       @driver.manage.timeouts.implicit_wait = 10 # seconds
-      @explicit_wait_time = 5
+      @explicit_wait_time = @settings['explicit_wait_time']
       @wait = Selenium::WebDriver::Wait.new(timeout: @explicit_wait_time) # seconds
       LenovoWarrantyScraper.driver = @driver
       LenovoWarrantyScraper.wait = @wait
@@ -49,7 +51,9 @@ module LenovoWarrantyScraper
       enter_ticket_number
       enter_failure_description
       enter_comments
-      # submit_claim
+      if @settings['submit_claim']
+        submit_claim
+      end
       warranty_reference = read_warranty_reference
       quit
 
@@ -58,6 +62,12 @@ module LenovoWarrantyScraper
 
     def quit
       @driver.quit
+      $logger.debug "Closing webdriver"
+    end
+
+    def close
+      @driver.close
+      $logger.debug "Closing window"
     end
 
     def navigate_to_url
@@ -191,11 +201,13 @@ module LenovoWarrantyScraper
 
     def submit_claim
       Element.new("aaaa.ClaimCompleAndSubmitView.Submit", key: :id, wait: @explicit_wait_time).click
+      switch_to_popup_iframe
+      Element.new("//*[@id='aaaaBJBL.DialogView.0']", key: :xpath, wait: @explicit_wait_time).click
+      switch_to_external_claim_admin_iframe
     end
 
     def read_warranty_reference
-      #TODO
-      ;
+      Element.new("//*[@id='aaaa.ClaimConfirmationView.ClaimNumber']", key: :xpath, wait: @explicit_wait_time).read_text
     end
 
     def date_is_not_past(date)

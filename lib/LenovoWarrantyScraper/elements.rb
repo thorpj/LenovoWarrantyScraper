@@ -19,6 +19,10 @@ class Element
   def send_keys(text)
     @element.send_keys(text)
   end
+
+  def read_text()
+    @element.attribute('value')
+  end
 end
 
 class Checkbox < Element

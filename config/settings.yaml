@@ -1,4 +1,4 @@
-headless: true
+headless: false
 service_type: 'Labour Only Claim'
 service_delivery_type: "On-Site"
 customer_search_field: 'Company'
@@ -14,3 +14,5 @@ failure_sleep_times:
   5: 10
 date_format: '%d.%m.%Y'
 log_path: 'app.log'
+submit_claim: true # Enable to submit claims.
+explicit_wait_time: 8

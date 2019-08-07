@@ -1,7 +1,0 @@
-parse input file
-load state file
-attepmt to submit claim, 
-	display errors (out of warranty)
-	retry up to five times with increasing gaps between attempts (0.25, 1, 2, 5, 10 minutes)
-	change status (nil, submitted, failed, out of warranty, )
-save state file
