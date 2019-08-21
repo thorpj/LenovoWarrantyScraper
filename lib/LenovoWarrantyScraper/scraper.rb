@@ -2,9 +2,9 @@ require 'time'
 
 module LenovoWarrantyScraper
   class Scraper
-    def initialize
+    def initialize(settings = nil)
       @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
-      @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
+      @settings = settings || YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
       @url = @settings['url']
 
       if @settings['headless']
