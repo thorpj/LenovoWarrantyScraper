@@ -1,5 +1,5 @@
 headless: false
-service_type: 'Labour Only Claim'
+service_type: 'Customer Ltd Warranty'
 service_delivery_type: "On-Site"
 customer_search_field: 'Company'
 input_csv_path: 'config/serial_number_input.csv'
@@ -16,3 +16,5 @@ date_format: '%d.%m.%Y'
 log_path: 'app.log'
 submit_claim: true # Enable to submit claims.
 explicit_wait_time: 8
+errors:
+  exceeds_service_date_threshold: 'Service date must be no more than 15 calendar days in the past.'

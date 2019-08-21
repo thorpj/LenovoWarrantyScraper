@@ -47,6 +47,7 @@ module LenovoWarrantyScraper
       select_technician
       select_service_delivery_type
       select_external_claim_admin_continue
+      select_external_claim_admin_confirm_continune
       select_customer
       enter_ticket_number
       enter_failure_description
@@ -58,6 +59,30 @@ module LenovoWarrantyScraper
       quit
 
       warranty_reference
+    end
+
+    def test(serial_number)
+      navigate_to_url
+      login_form
+      external_claim_admin_tab
+      select_location
+      select_service_type
+      enter_serial_number(serial_number)
+      select_service_date
+      select_technician
+      select_service_delivery_type
+      select_external_claim_admin_continue
+
+      errors = read_errors
+
+      $logger.debug "Errors:"
+      errors.each { |error| $logger.debug error }
+
+      if errors.include? @settings['errors']['exceeds_service_date_threshold']
+
+      end
+
+      quit
     end
 
     def quit
@@ -98,6 +123,25 @@ module LenovoWarrantyScraper
       Element.new("aaaa.EntitleClaimView.SerialNo", key: :id, wait: @explicit_wait_time).send_keys serial_number
       Element.new("//span[text()='Select Product']/..", wait: @explicit_wait_time).click
       select_latest_warranty_item
+    end
+
+    def read_errors
+      errors = []
+      sleep(@explicit_wait_time)
+      rows = @driver.find_elements(xpath: '//*[@id="aaaa.EntitleClaimView.MessageArea-contentTBody"]//tr')
+
+      rows.each_with_index do |_,index|
+        cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitleClaimView.MessageArea-contentTBody\"]//tr[#{index}]/td/div/table/tbody/tr/td/span")
+        unless cells.empty?
+          errors << cells.first.text
+        end
+      end
+      errors
+    end
+
+    def check_errors
+      errors = read_errors
+
     end
 
     def select_latest_warranty_item
@@ -166,6 +210,9 @@ module LenovoWarrantyScraper
 
     def select_external_claim_admin_continue
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+    end
+
+    def select_external_claim_admin_confirm_continune
       Element.new("aaaa.EntitlementResultsView.Continue", key: :id, wait: @explicit_wait_time).click
     end
 
@@ -214,8 +261,12 @@ module LenovoWarrantyScraper
       date = Time.strptime(date, @settings['date_format'])
       date >= Time.now
     end
+
   end
 
   class OutOfWarrantyError < StandardError
+  end
+
+  class ExceedsServiceDateThreshold < StandardError
   end
 end
