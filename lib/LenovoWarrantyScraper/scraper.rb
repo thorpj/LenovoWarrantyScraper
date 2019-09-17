@@ -67,7 +67,11 @@ module LenovoWarrantyScraper
       external_claim_admin_tab
       select_location
       select_service_type
-      enter_serial_number(serial_number)
+      begin
+        enter_serial_number(serial_number)
+      rescue LenovoWarrantyScraper::OutOfWarrantyError
+        
+      end
       select_service_date
       select_technician
       select_service_delivery_type
@@ -208,10 +212,22 @@ module LenovoWarrantyScraper
       Element.new("aaaa.EntitleClaimView.ServiceDeliveryType", key: :id, wait: @explicit_wait_time).send_keys @settings['service_delivery_type']
     end
 
+    # Continue button on first page of claim
     def select_external_claim_admin_continue
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
     end
 
+    def select_parts(part_numbers)
+      headings = []
+      headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[1]/th/table/tbody/tr/td/div/span")
+      headings_cells.each { |cell| headings << cell.text }
+
+      search_field_index = (headings.index @settings['part_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
+
+      search_field = @driver.find_element(xpath: "//*[@id=\"\"")
+    end
+
+    # Continue button on parts select page
     def select_external_claim_admin_confirm_continune
       Element.new("aaaa.EntitlementResultsView.Continue", key: :id, wait: @explicit_wait_time).click
     end
@@ -223,7 +239,7 @@ module LenovoWarrantyScraper
       sleep(@explicit_wait_time)
       headings = []
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.CustomerSelectPopupView.CustomerTable-contentTBody\"]//tr[1]/td/div/span/span")
-      headings_cells.each { |cell| headings << cell.text}
+      headings_cells.each { |cell| headings << cell.text }
 
       search_field_index = (headings.index @settings['customer_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
 
