@@ -29,16 +29,24 @@ module LenovoWarrantyScraper
       sleep(time)
     end
 
+    def parts_to_array(parts)
+      parts.split(" ")
+    end
+
     def submit_claim
       attempts = 0
       @state_manager.add_new(@serial_number)
       status = @state_manager.get_attribute(@serial_number, 'status')
+      ticket_number = @state_manager.get_attribute(@serial_number, 'ticket_number')
+      failure_description = @state_manager.get_attribute(@serial_number, 'failure_description')
+      comments = @state_manager.get_attribute(@serial_number, 'comments')
+      parts = parts_to_array((@state_manager.get_attribute(@serial_number, 'parts')))
       warranty_reference = @state_manager.get_attribute(@serial_number, 'warranty_reference')
       if status != 'submitted' || warranty_reference.nil?
           $logger.debug "Lodging claim"
           while attempts < @settings['max_attempts']
             begin
-              warranty_reference = @scraper.make_claim(@serial_number)
+              warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments)
               unless warranty_reference.nil? || warranty_reference == ''
                 update_status(:submitted)
                 update_warranty_reference(warranty_reference)

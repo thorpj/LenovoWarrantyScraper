@@ -23,5 +23,5 @@ module LenovoWarrantyScraper
   end
 
   runner = LenovoWarrantyScraper::Runner.new
-  runner.scrape
+  runner.run
 end

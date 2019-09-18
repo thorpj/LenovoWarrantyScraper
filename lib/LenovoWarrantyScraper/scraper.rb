@@ -239,6 +239,14 @@ module LenovoWarrantyScraper
     # Continue button on first page of claim
     def select_external_claim_admin_continue
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+      switch_to_popup_iframe
+      # Handle existing claim within 30 days warning
+      begin
+        continue_button = Element.new("aaaaBJBJ.DialogView.0", key: :id)
+        continue_button.click
+      rescue NoSuchElementError
+      end
+      switch_to_external_claim_admin_iframe
     end
 
     def select_parts(parts)
