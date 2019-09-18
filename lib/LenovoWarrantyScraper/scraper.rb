@@ -52,14 +52,37 @@ module LenovoWarrantyScraper
       enter_ticket_number
       enter_failure_description
       enter_comments
-      if @settings['submit_claim']
-        submit_claim
-      end
+      submit_claim if @settings['submit_claim']
       warranty_reference = read_warranty_reference
       quit
 
       warranty_reference
     end
+
+    def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments)
+      navigate_to_url
+      login_form
+      external_claim_admin_tab
+      select_location
+      select_service_type
+      enter_serial_number(serial_number)
+      select_service_date
+      select_technician
+      select_service_delivery_type
+      select_external_claim_admin_continue
+      select_parts(parts)
+      select_external_claim_admin_confirm_continune
+      select_customer
+      enter_ticket_number(ticket_number)
+      enter_failure_description(failure_description)
+      enter_comments(comments)
+      submit_claim if @settings['submit_claim']
+      warranty_reference = read_warranty_reference
+      quit
+
+      warranty_reference
+    end
+
 
     def test(serial_number)
       navigate_to_url
@@ -88,6 +111,7 @@ module LenovoWarrantyScraper
 
       quit
     end
+
 
     def quit
       @driver.quit
@@ -217,14 +241,23 @@ module LenovoWarrantyScraper
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
     end
 
-    def select_parts(part_numbers)
+    def select_parts(parts)
       headings = []
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[1]/th/table/tbody/tr/td/div/span")
       headings_cells.each { |cell| headings << cell.text }
 
       search_field_index = (headings.index @settings['part_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
 
-      search_field = @driver.find_element(xpath: "//*[@id=\"\"")
+      search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
+      parts.each do |part|
+        search_field.send_keys part, :return
+        sleep(@explicit_wait_time)
+        part_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]/tr[2]/td[#{search_field_index}]/span")
+        sleep(@explicit_wait_time)
+        part_field.click
+        search_field.clear
+        search_field.send_keys Selenium::WebDriver::Keys[:backspace], :return
+      end
     end
 
     # Continue button on parts select page
@@ -250,16 +283,19 @@ module LenovoWarrantyScraper
       switch_to_external_claim_admin_iframe
     end
 
-    def enter_ticket_number
-      Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys @secrets['ticket_number']
+    def enter_ticket_number(ticket_number = nil)
+      ticket_number = @secrets['tcket_number'] if ticket_number.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys ticket_number
     end
 
-    def enter_failure_description
-      Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys @secrets['failure_description']
+    def enter_failure_description(failure_description = nil)
+      failure_description = @secrets['failure_description'] if failure_description.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys failure_description
     end
 
-    def enter_comments
-      Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys @secrets['comments']
+    def enter_comments(comments = nil)
+      comments = @secrets['comments'] if comments.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys comments
     end
 
     def submit_claim
