@@ -2,6 +2,7 @@ headless: false
 service_type: 'Customer Ltd Warranty'
 service_delivery_type: "On-Site"
 customer_search_field: 'Company'
+part_search_field: 'Part Number'
 input_csv_path: 'config/adp_warranty_claims.csv'
 state_csv_path: 'config/adp_warranty_claims_export.csv'
 url: "https://csp.lenovo.com/irj/portal"

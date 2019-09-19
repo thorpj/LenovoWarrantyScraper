@@ -60,6 +60,7 @@ module LenovoWarrantyScraper
     end
 
     def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments)
+      puts "Processing: #{serial_number} #{parts} #{ticket_number} #{failure_description} #{comments}"
       navigate_to_url
       login_form
       external_claim_admin_tab
@@ -239,12 +240,13 @@ module LenovoWarrantyScraper
     # Continue button on first page of claim
     def select_external_claim_admin_continue
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+      sleep(@explicit_wait_time)
       switch_to_popup_iframe
       # Handle existing claim within 30 days warning
       begin
         continue_button = Element.new("aaaaBJBJ.DialogView.0", key: :id)
         continue_button.click
-      rescue NoSuchElementError
+      rescue
       end
       switch_to_external_claim_admin_iframe
     end
@@ -260,9 +262,10 @@ module LenovoWarrantyScraper
       parts.each do |part|
         search_field.send_keys part, :return
         sleep(@explicit_wait_time)
-        part_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]/tr[2]/td[#{search_field_index}]/span")
+        part_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]/tr[3]/td[#{search_field_index}]/span")
         sleep(@explicit_wait_time)
         part_field.click
+        search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
         search_field.clear
         search_field.send_keys Selenium::WebDriver::Keys[:backspace], :return
       end
