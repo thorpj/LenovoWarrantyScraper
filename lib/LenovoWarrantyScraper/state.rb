@@ -56,6 +56,11 @@ module LenovoWarrantyScraper
       end
     end
 
+    def save_and_reload_state_file
+      save_state_file
+      @state = load_state_file
+    end
+
     def add_new(serial_number)
       if (find_index(serial_number)).nil?
         requires_reload = false

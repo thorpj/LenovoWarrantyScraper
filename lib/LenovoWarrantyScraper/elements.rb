@@ -20,8 +20,14 @@ class Element
     @element.send_keys(text)
   end
 
-  def read_text()
-    @element.attribute('value')
+  def value
+    read_text
+  end
+
+  def read_text
+    text = @element.attribute('value')
+    text = @element.text if text.nil?
+    text
   end
 end
 

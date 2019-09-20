@@ -3,7 +3,7 @@ module LenovoWarrantyScraper
 
   class Runner
     def initialize
-      @scraper = LenovoWarrantyScraper::Scraper.new
+      @scraper = nil
       @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
       @state_manager = LenovoWarrantyScraper::StateManager.new
       @serial_number = nil
@@ -41,31 +41,32 @@ module LenovoWarrantyScraper
       failure_description = @state_manager.get_attribute(@serial_number, 'failure_description')
       comments = @state_manager.get_attribute(@serial_number, 'comments')
       parts = parts_to_array((@state_manager.get_attribute(@serial_number, 'parts')))
+      customer = @state_manager.get_attribute(@serial_number, 'customer')
+      service_type = @state_manager.get_attribute(@serial_number, 'service_type')
       warranty_reference = @state_manager.get_attribute(@serial_number, 'warranty_reference')
       if status != 'submitted' || warranty_reference.nil?
-          $logger.debug "Lodging claim"
-          while attempts < @settings['max_attempts']
-            begin
-              warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments)
-              unless warranty_reference.nil? || warranty_reference == ''
-                update_status(:submitted)
-                update_warranty_reference(warranty_reference)
-                $logger.debug "Claim successful #{@serial_number} #{warranty_reference}"
-                break
-              end
-            rescue OutOfWarrantyError
-              $logger.debug "Failed to submit claim - out of warranty, retrying"
-              update_status(:out_of_warranty)
+        $logger.debug "Lodging claim"
+        while attempts < @settings['max_attempts']
+          begin
+            @scraper = LenovoWarrantyScraper::Scraper.new
+            warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
+            unless warranty_reference.nil? || warranty_reference == ''
+              update_status(:submitted)
+              update_warranty_reference(warranty_reference)
+              $logger.debug "Claim successful #{@serial_number} #{warranty_reference}"
+              @state_manager.save_and_reload_state_file
+              attempts += 1
               break
-            rescue => e
-              # $logger.debug e
-              $logger.debug "Failed to submit claim, retrying"
             end
-            @scraper.close
+          rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::ObsoleteElementError, Selenium::WebDriver::Error::UnhandledError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError => e
+            $logger.debug e
+            $logger.debug "Failed to submit claim, retrying"
             attempts += 1
             failure_sleep(attempts)
           end
-        if attempts >= 5
+          break
+        end
+        if attempts >= 4
           update_status(:failed)
           $logger.debug "Failed to submit claim"
         end

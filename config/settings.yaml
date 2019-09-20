@@ -15,7 +15,8 @@ failure_sleep_times:
   5: 10
 date_format: '%d.%m.%Y'
 log_path: 'app.log'
-submit_claim: false # Enable to submit claims.
+submit_claim: true # Enable to submit claims.
 explicit_wait_time: 8
 errors:
   exceeds_service_date_threshold: 'Service date must be no more than 15 calendar days in the past.'
+  service_delivery_type_not_authorized: 'Message: Not authorized for the selected Service Delivery Type!'
