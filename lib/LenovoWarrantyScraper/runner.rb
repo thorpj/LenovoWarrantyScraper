@@ -19,11 +19,6 @@ module LenovoWarrantyScraper
       @state_manager.save_state_file
     end
 
-    def scrape
-      @serial_number = 'R90SBAGV'
-      @scraper.test(@serial_number)
-    end
-
     def failure_sleep(attempts)
       time = @settings['failure_sleep_times'][attempts]
       sleep(time)

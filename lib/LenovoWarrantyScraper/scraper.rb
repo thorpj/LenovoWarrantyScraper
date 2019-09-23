@@ -36,28 +36,28 @@ module LenovoWarrantyScraper
       @driver.switch_to.frame @driver.find_element(id: "URLSPW-0")
     end
 
-    def make_claim(serial_number)
-      navigate_to_url
-      login_form
-      external_claim_admin_tab
-      select_location
-      select_service_type
-      enter_serial_number(serial_number)
-      select_service_date
-      select_technician
-      select_service_delivery_type
-      select_external_claim_admin_continue
-      select_external_claim_admin_confirm_continune
-      select_customer
-      enter_ticket_number
-      enter_failure_description
-      enter_comments
-      submit_claim if @settings['submit_claim']
-      warranty_reference = read_warranty_reference
-      quit
-
-      warranty_reference
-    end
+    # def make_claim(serial_number)
+    #   navigate_to_url
+    #   login_form
+    #   external_claim_admin_tab
+    #   select_location
+    #   select_service_type
+    #   enter_serial_number(serial_number)
+    #   select_service_date
+    #   select_technician
+    #   select_service_delivery_type
+    #   select_external_claim_admin_continue
+    #   select_external_claim_admin_confirm_continune
+    #   select_customer
+    #   enter_ticket_number
+    #   enter_failure_description
+    #   enter_comments
+    #   submit_claim if @settings['submit_claim']
+    #   warranty_reference = read_warranty_reference
+    #   quit
+    #
+    #   warranty_reference
+    # end
 
     def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
       puts "Processing: #{serial_number} #{parts} #{ticket_number} #{failure_description} #{comments}"
@@ -87,33 +87,33 @@ module LenovoWarrantyScraper
     end
 
 
-    def test(serial_number)
-      navigate_to_url
-      login_form
-      external_claim_admin_tab
-      select_location
-      select_service_type
-      begin
-        enter_serial_number(serial_number)
-      rescue LenovoWarrantyScraper::OutOfWarrantyError
-        
-      end
-      select_service_date
-      select_technician
-      select_service_delivery_type
-      select_external_claim_admin_continue
-
-      errors = read_errors
-
-      $logger.debug "Errors:"
-      errors.each { |error| $logger.debug error }
-
-      if errors.include? @settings['errors']['exceeds_service_date_threshold']
-
-      end
-
-      quit
-    end
+    # def test(serial_number)
+    #   navigate_to_url
+    #   login_form
+    #   external_claim_admin_tab
+    #   select_location
+    #   select_service_type
+    #   begin
+    #     enter_serial_number(serial_number)
+    #   rescue LenovoWarrantyScraper::OutOfWarrantyError
+    #
+    #   end
+    #   select_service_date
+    #   select_technician
+    #   select_service_delivery_type
+    #   select_external_claim_admin_continue
+    #
+    #   errors = read_errors
+    #
+    #   $logger.debug "Errors:"
+    #   errors.each { |error| $logger.debug error }
+    #
+    #   if errors.include? @settings['errors']['exceeds_service_date_threshold']
+    #
+    #   end
+    #
+    #   quit
+    # end
 
 
     def quit
