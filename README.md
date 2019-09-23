@@ -12,7 +12,11 @@ https://chocolatey.org/packages/selenium-gecko-driver
 
 * Copy config/secrets.yaml.sample to config/secrets.yaml and configure
 * Copy config/serial_number_input.csv.sample to config/serial_number_input.csv
-* Copy config/status.csv.sample to config/status.csv
+* Copy config/claims.csv.sample to config/claims.csv
+
+Fill out csv config files listed above
+
+Run lib/LenovoWarrantyScraper.rb
 
 ## Development
 
