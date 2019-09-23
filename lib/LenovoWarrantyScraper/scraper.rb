@@ -2,9 +2,9 @@ require 'time'
 
 module LenovoWarrantyScraper
   class Scraper
-    def initialize
+    def initialize(settings = nil)
       @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
-      @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
+      @settings = settings || YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
       @url = @settings['url']
 
       if @settings['headless']
@@ -36,29 +36,85 @@ module LenovoWarrantyScraper
       @driver.switch_to.frame @driver.find_element(id: "URLSPW-0")
     end
 
-    def make_claim(serial_number)
+    # def make_claim(serial_number)
+    #   navigate_to_url
+    #   login_form
+    #   external_claim_admin_tab
+    #   select_location
+    #   select_service_type
+    #   enter_serial_number(serial_number)
+    #   select_service_date
+    #   select_technician
+    #   select_service_delivery_type
+    #   select_external_claim_admin_continue
+    #   select_external_claim_admin_confirm_continune
+    #   select_customer
+    #   enter_ticket_number
+    #   enter_failure_description
+    #   enter_comments
+    #   submit_claim if @settings['submit_claim']
+    #   warranty_reference = read_warranty_reference
+    #   quit
+    #
+    #   warranty_reference
+    # end
+
+    def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
+      puts "Processing: #{serial_number} #{parts} #{ticket_number} #{failure_description} #{comments}"
       navigate_to_url
       login_form
       external_claim_admin_tab
       select_location
-      select_service_type
+      select_service_type(service_type)
       enter_serial_number(serial_number)
       select_service_date
       select_technician
       select_service_delivery_type
       select_external_claim_admin_continue
-      select_customer
-      enter_ticket_number
-      enter_failure_description
-      enter_comments
-      if @settings['submit_claim']
-        submit_claim
-      end
+      select_parts(parts)
+      select_external_claim_admin_confirm_continune
+      select_customer(customer)
+      select_ship_to_location
+      enter_ticket_number(ticket_number)
+      enter_failure_description(failure_description)
+      enter_comments(comments)
+      submit_claim if @settings['submit_claim']
       warranty_reference = read_warranty_reference
+      puts warranty_reference
       quit
 
       warranty_reference
     end
+
+
+    # def test(serial_number)
+    #   navigate_to_url
+    #   login_form
+    #   external_claim_admin_tab
+    #   select_location
+    #   select_service_type
+    #   begin
+    #     enter_serial_number(serial_number)
+    #   rescue LenovoWarrantyScraper::OutOfWarrantyError
+    #
+    #   end
+    #   select_service_date
+    #   select_technician
+    #   select_service_delivery_type
+    #   select_external_claim_admin_continue
+    #
+    #   errors = read_errors
+    #
+    #   $logger.debug "Errors:"
+    #   errors.each { |error| $logger.debug error }
+    #
+    #   if errors.include? @settings['errors']['exceeds_service_date_threshold']
+    #
+    #   end
+    #
+    #   quit
+    # end
+
 
     def quit
       @driver.quit
@@ -90,14 +146,48 @@ module LenovoWarrantyScraper
       Element.new("//span[text()='Select']/..", wait: @explicit_wait_time).click
     end
 
-    def select_service_type
-      Element.new("aaaa.EntitleClaimView.ServiceType", key: :id, wait: @explicit_wait_time).send_keys @settings['service_type']
+    def select_service_type(service_type)
+      case service_type
+      when "CLW"
+        service_type = "Customer Ltd Warranty"
+      when "ADP"
+        service_type = "Accidental Damage Claim"
+      when "DOA"
+        service_type = "DOA Claim"
+      when "LOC"
+        service_type = "Labour Only Claim"
+      end
+      Element.new("aaaa.EntitleClaimView.ServiceType", key: :id, wait: @explicit_wait_time).send_keys service_type
     end
 
     def enter_serial_number(serial_number)
       Element.new("aaaa.EntitleClaimView.SerialNo", key: :id, wait: @explicit_wait_time).send_keys serial_number
       Element.new("//span[text()='Select Product']/..", wait: @explicit_wait_time).click
       select_latest_warranty_item
+    end
+
+    def read_errors
+      errors = []
+      sleep(@explicit_wait_time)
+      rows = @driver.find_elements(xpath: '//*[@id="aaaa.EntitleClaimView.MessageArea-contentTBody"]//tr')
+
+      rows.each_with_index do |_,index|
+        cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitleClaimView.MessageArea-contentTBody\"]//tr[#{index}]/td/div/table/tbody/tr/td/span")
+        unless cells.empty?
+          errors << cells.first.text
+        end
+      end
+
+      begin
+        errors << Element.new("aaaa.EntitleClaimView.MessageArea-txt", key: :id, wait: @explicit_wait_time).value
+      rescue
+      end
+      errors
+    end
+
+    def check_errors
+      errors = read_errors
+
     end
 
     def select_latest_warranty_item
@@ -160,49 +250,111 @@ module LenovoWarrantyScraper
                   key: :id, wait: @explicit_wait_time).send_keys @secrets['technician_code']
     end
 
-    def select_service_delivery_type
-      Element.new("aaaa.EntitleClaimView.ServiceDeliveryType", key: :id, wait: @explicit_wait_time).send_keys @settings['service_delivery_type']
+    def enter_authorization_code(code)
+      Element.new("aaaa.EntitleClaimView.RMANumber", key: :id, wait: @explicit_wait_time).send_keys code
     end
 
+    def select_service_delivery_type(service_delivery_type = @settings['service_delivery_type'])
+      Element.new("aaaa.EntitleClaimView.ServiceDeliveryType", key: :id, wait: @explicit_wait_time).send_keys service_delivery_type
+    end
+
+    # Continue button on first page of claim
     def select_external_claim_admin_continue
       Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+      sleep(@explicit_wait_time)
+
+      # Handle incorrect Service Delivery Type
+      begin
+        errors = read_errors
+        if errors.include? @settings['errors']['service_delivery_type_not_authorized']
+          select_service_delivery_type("Carry-in")
+        end
+      rescue
+      end
+      sleep(@explicit_wait_time)
+      Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+      sleep(@explicit_wait_time)
+
+      switch_to_popup_iframe
+      # Handle existing claim within 30 days warning
+      begin
+        continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath)
+        continue_button.click
+      rescue
+      end
+      switch_to_external_claim_admin_iframe
+    end
+
+    def select_parts(parts)
+      headings = []
+      headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[1]/th/table/tbody/tr/td/div/span")
+      headings_cells.each { |cell| headings << cell.text }
+
+      search_field_index = (headings.index @settings['part_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
+
+      parts.each do |part|
+        sleep(@explicit_wait_time)
+        search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
+        search_field.send_keys part, :return
+        sleep(@explicit_wait_time)
+        part_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]/tr[3]/td[#{search_field_index}]/span")
+        sleep(@explicit_wait_time)
+        part_field.click
+        sleep(@explicit_wait_time)
+        search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
+        sleep(@explicit_wait_time)
+        search_field.clear
+      end
+    end
+
+    # Continue button on parts select page
+    def select_external_claim_admin_confirm_continune
       Element.new("aaaa.EntitlementResultsView.Continue", key: :id, wait: @explicit_wait_time).click
     end
 
-    def select_customer
+    def select_customer(customer)
       Element.new("aaaa.ClaimCompleAndSubmitView.SelectCusButton", key: :id, wait: @explicit_wait_time).click
       switch_to_popup_iframe
 
       sleep(@explicit_wait_time)
       headings = []
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.CustomerSelectPopupView.CustomerTable-contentTBody\"]//tr[1]/td/div/span/span")
-      headings_cells.each { |cell| headings << cell.text}
+      headings_cells.each { |cell| headings << cell.text }
 
       search_field_index = (headings.index @settings['customer_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
 
       search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.CustomerSelectPopupView.CustomerTable-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
-      search_field.send_keys @secrets['company'], :return
+      search_field.send_keys customer, :return
 
       Element.new("aaaa.CustomerSelectPopupView.SelectButton", key: :id, wait: @explicit_wait_time).click
       switch_to_external_claim_admin_iframe
     end
 
-    def enter_ticket_number
-      Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys @secrets['ticket_number']
+    def select_ship_to_location
+      Element.new("aaaa.ClaimCompleAndSubmitView.DropDownByKey4", key: :id, wait: @explicit_wait_time).send_keys "Dealer"
     end
 
-    def enter_failure_description
-      Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys @secrets['failure_description']
+
+    def enter_ticket_number(ticket_number = nil)
+      ticket_number = @secrets['tcket_number'] if ticket_number.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys ticket_number
     end
 
-    def enter_comments
-      Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys @secrets['comments']
+    def enter_failure_description(failure_description = nil)
+      failure_description = @secrets['failure_description'] if failure_description.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys failure_description
+    end
+
+    def enter_comments(comments = nil)
+      comments = @secrets['comments'] if comments.nil?
+      Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys comments
     end
 
     def submit_claim
       Element.new("aaaa.ClaimCompleAndSubmitView.Submit", key: :id, wait: @explicit_wait_time).click
       switch_to_popup_iframe
-      Element.new("//*[@id='aaaaBJBL.DialogView.0']", key: :xpath, wait: @explicit_wait_time).click
+      continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath)
+      continue_button.click
       switch_to_external_claim_admin_iframe
     end
 
@@ -214,8 +366,12 @@ module LenovoWarrantyScraper
       date = Time.strptime(date, @settings['date_format'])
       date >= Time.now
     end
+
   end
 
   class OutOfWarrantyError < StandardError
+  end
+
+  class ExceedsServiceDateThreshold < StandardError
   end
 end

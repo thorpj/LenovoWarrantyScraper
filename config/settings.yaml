@@ -1,9 +1,10 @@
-headless: false
-service_type: 'Labour Only Claim'
+headless: true
+service_type: 'Customer Ltd Warranty'
 service_delivery_type: "On-Site"
 customer_search_field: 'Company'
+part_search_field: 'Part Number'
 input_csv_path: 'config/serial_number_input.csv'
-state_csv_path: 'config/status.csv'
+state_csv_path: 'config/claims.csv'
 url: "https://csp.lenovo.com/irj/portal"
 max_attempts: 5
 failure_sleep_times:
@@ -16,3 +17,6 @@ date_format: '%d.%m.%Y'
 log_path: 'app.log'
 submit_claim: true # Enable to submit claims.
 explicit_wait_time: 8
+errors:
+  exceeds_service_date_threshold: 'Service date must be no more than 15 calendar days in the past.'
+  service_delivery_type_not_authorized: 'Message: Not authorized for the selected Service Delivery Type!'
