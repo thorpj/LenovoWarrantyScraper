@@ -264,16 +264,18 @@ module LenovoWarrantyScraper
       sleep(@explicit_wait_time)
 
       # Handle incorrect Service Delivery Type
+      errors = nil
       begin
         errors = read_errors
         if errors.include? @settings['errors']['service_delivery_type_not_authorized']
           select_service_delivery_type("Carry-in")
         end
+        sleep(@explicit_wait_time)
+        Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
+        sleep(@explicit_wait_time)
       rescue
       end
-      sleep(@explicit_wait_time)
-      Element.new("aaaa.EntitleClaimView.Continue", key: :id, wait: @explicit_wait_time).click
-      sleep(@explicit_wait_time)
+
 
       switch_to_popup_iframe
       # Handle existing claim within 30 days warning
