@@ -1,5 +1,6 @@
 require 'time'
 
+
 module LenovoWarrantyScraper
   class Scraper
     def initialize(settings = nil)
@@ -226,8 +227,10 @@ module LenovoWarrantyScraper
           table << table_entry
         end
       end
-
-      latest_warranty_item = table.max_by { |k,v| k['End Date']}
+      latest_warranty_item = table.max_by do |warranty|
+        end_date = warranty['End Date']
+        Date.parse(end_date) unless end_date.nil?
+      end
       in_warranty = date_is_not_past(latest_warranty_item['End Date'])
       unless in_warranty
         raise LenovoWarrantyScraper::OutOfWarrantyError

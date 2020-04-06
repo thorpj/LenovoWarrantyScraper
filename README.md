@@ -3,7 +3,8 @@
 
 ## Installation
 
-Install Firefox Geckodriver
+Install Firefox and Geckodriver
+./install_geckodriver.sh is included. See source for install path.
 https://chocolatey.org/packages/selenium-gecko-driver
 
 

@@ -8,3 +8,4 @@ curl -s -L "$url" | tar -xz
 chmod +x geckodriver
 sudo mv geckodriver "$INSTALL_DIR"
 echo "installed geckodriver binary in $INSTALL_DIR"
+
