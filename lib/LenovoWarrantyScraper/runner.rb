@@ -2,9 +2,10 @@ module LenovoWarrantyScraper
 
 
   class Runner
-    def initialize
+    def initialize(settings)
       @scraper = nil
-      @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
+      @settings = settings
+      @settings ||= YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
       @state_manager = LenovoWarrantyScraper::StateManager.new
       @serial_number = nil
     end
