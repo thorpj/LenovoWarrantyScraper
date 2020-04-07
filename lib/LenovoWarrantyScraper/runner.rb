@@ -8,8 +8,8 @@ module LenovoWarrantyScraper
       @secrets = secrets
 
       if @secrets.nil? && @settings.nil?
-        @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
-        @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
+        @settings = LenovoWarrantyScraper.load_settings
+        @secrets = LenovoWarrantyScraper.load_secrets
         @state_manager = LenovoWarrantyScraper::StateManager.new(@secrets, @settings)
       end
       @serial_number = nil
@@ -17,7 +17,7 @@ module LenovoWarrantyScraper
 
     def single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
       service_type = 'CLW'
-      @scraper = LenovoWarrantyScraper::Scraper.new
+      @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
       warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type)
       warranty_reference
     end
@@ -56,7 +56,7 @@ module LenovoWarrantyScraper
         $logger.debug "Lodging claim"
         while attempts < @settings['max_attempts']
           begin
-            @scraper = LenovoWarrantyScraper::Scraper.new
+            @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
             warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
             unless warranty_reference.nil? || warranty_reference == ''
               update_status(:submitted)

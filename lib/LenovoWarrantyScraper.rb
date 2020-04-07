@@ -28,8 +28,28 @@ module LenovoWarrantyScraper
   end
 
   def self.single_claim(secrets, settings, serial_number, account, ticket_number, parts, failure_description, comments)
+    if !(parts.is_a?(Array))
+      if parts.is_a?(String)
+        parts = parts.split(' ')
+      else
+        parts = [parts]
+      end
+    end
+
     runner = LenovoWarrantyScraper::Runner.new(secrets, settings)
     warranty_reference = runner.single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
     warranty_reference
   end
+
+  def self.load_secrets
+    path = File.expand_path(File.join(File.dirname(__dir__), 'config/secrets.yaml'))
+    YAML.load_file(path)
+  end
+
+  def self.load_settings
+    path = File.expand_path(File.join(File.dirname(__dir__), 'config/settings.yaml'))
+    YAML.load_file(path)
+  end
+
+
 end
