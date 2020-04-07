@@ -9,4 +9,8 @@ class LenovoWarrantyScraperTest < Minitest::Test
     assert false
   end
 
+  def test_i
+    LenovoWarrantyScraper.single_claim(LenovoWarrantyScraper.load_secrets, LenovoWarrantyScraper.load_settings, 'R90T4Z94', 'Churchlands', 'T2020', '01FR030', 'Device not charging', 'Updated BIOS, Tested charger with spare device - not working, tested spare charger with customer device working')
+  end
+
 end

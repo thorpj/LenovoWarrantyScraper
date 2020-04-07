@@ -23,7 +23,7 @@ module LenovoWarrantyScraper
         warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type)
         warranty_reference
       rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::ObsoleteElementError, Selenium::WebDriver::Error::UnhandledError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError
-        Raise ApiError
+        raise ApiError
       end
     end
 
