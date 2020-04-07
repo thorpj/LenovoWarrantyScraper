@@ -2,12 +2,24 @@ module LenovoWarrantyScraper
 
 
   class Runner
-    def initialize(settings)
+    def initialize(secrets = nil, settings = nil)
       @scraper = nil
       @settings = settings
-      @settings ||= YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
-      @state_manager = LenovoWarrantyScraper::StateManager.new
+      @secrets = secrets
+
+      if @secrets.nil? && @settings.nil?
+        @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
+        @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
+        @state_manager = LenovoWarrantyScraper::StateManager.new(@secrets, @settings)
+      end
       @serial_number = nil
+    end
+
+    def single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
+      service_type = 'CLW'
+      @scraper = LenovoWarrantyScraper::Scraper.new
+      warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type)
+      warranty_reference
     end
 
     def run

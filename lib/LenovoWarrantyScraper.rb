@@ -22,6 +22,14 @@ module LenovoWarrantyScraper
     attr_accessor :driver, :wait, :elements
   end
 
-  runner = LenovoWarrantyScraper::Runner.new
-  runner.run
+  def self.run
+    runner = LenovoWarrantyScraper::Runner.new
+    runner.run
+  end
+
+  def self.single_claim(secrets, settings, serial_number, account, ticket_number, parts, failure_description, comments)
+    runner = LenovoWarrantyScraper::Runner.new(secrets, settings)
+    warranty_reference = runner.single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
+    warranty_reference
+  end
 end

@@ -5,9 +5,11 @@ module LenovoWarrantyScraper
     attr_accessor :state
     attr_reader :input
 
-    def initialize
-      @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
-      @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
+    def initialize(secrets, settings)
+      @secrets = secrets
+      @settings = settings
+      # @secrets = YAML.load_file(File.join(File.dirname(__dir__), '../config/secrets.yaml'))
+      # @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
       @state = load_state_file
       @input = load_input_file
       @headers = csv_headers(state_csv_path)
