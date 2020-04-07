@@ -5,7 +5,7 @@ customer_search_field: 'Company'
 part_search_field: 'Part Number'
 input_csv_path: 'config/serial_number_input.csv'
 state_csv_path: 'config/claims.csv'
-url: "l"
+url: "https://csp.lenovo.com/irj/portal"
 max_attempts: 5
 failure_sleep_times:
   1: 0.25
