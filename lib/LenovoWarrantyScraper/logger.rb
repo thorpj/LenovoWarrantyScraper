@@ -16,7 +16,7 @@ module LenovoWarrantyScraper
   end
 
   @settings = YAML.load_file(File.join(File.dirname(__dir__), '../config/settings.yaml'))
-  file = File.open(File.join(File.join(File.dirname(__FILE__), '../../'), @settings['log_path']), 'a')
+  file = File.open(File.join(File.join(File.dirname(__FILE__), '../../'), @settings[:log_path]), 'a')
 
   $logger = Logger.new MultiIO.new(STDOUT, file)
 end

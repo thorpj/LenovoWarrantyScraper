@@ -6,9 +6,9 @@ module LenovoWarrantyScraper
     def initialize(secrets, settings)
       @secrets = secrets
       @settings = settings
-      @url = @settings['url']
+      @url = @settings[:url]
 
-      if @settings['headless']
+      if @settings[:headless]
         options = Selenium::WebDriver::Firefox::Options.new(args: ['-headless'])
         @driver = Selenium::WebDriver.for(:firefox, options: options)
       else
@@ -17,7 +17,7 @@ module LenovoWarrantyScraper
 
       @driver.manage.window.resize_to(1000,800)
       @driver.manage.timeouts.implicit_wait = 10 # seconds
-      @explicit_wait_time = @settings['explicit_wait_time']
+      @explicit_wait_time = @settings[:explicit_wait_time]
       @wait = Selenium::WebDriver::Wait.new(timeout: @explicit_wait_time) # seconds
       LenovoWarrantyScraper.driver = @driver
       LenovoWarrantyScraper.wait = @wait
@@ -79,7 +79,7 @@ module LenovoWarrantyScraper
       enter_ticket_number(ticket_number)
       enter_failure_description(failure_description)
       enter_comments(comments)
-      submit_claim if @settings['submit_claim']
+      submit_claim if @settings[:submit_claim]
       warranty_reference = read_warranty_reference
       puts warranty_reference
       quit
@@ -132,8 +132,8 @@ module LenovoWarrantyScraper
     end
 
     def login_form
-      Element.new("//input[@name='j_username']").send_keys(@secrets['username'])
-      Element.new("//input[@name='j_password']").send_keys(@secrets['password'])
+      Element.new("//input[@name='j_username']").send_keys(@secrets[:username])
+      Element.new("//input[@name='j_password']").send_keys(@secrets[:password])
       Element.new("//input[@name='uidPasswordLogon']").click
     end
 
@@ -241,23 +241,23 @@ module LenovoWarrantyScraper
     end
 
     def select_service_date
-      date = Time.now.strftime(@settings['date_format'])
+      date = Time.now.strftime(@settings[:date_format])
       if @settings.key? "service_date"
-        date = @settings['service_date']
+        date = @settings[:service_date]
       end
       Element.new("aaaa.EntitleClaimView.ServiceDate", key: :id, wait: @explicit_wait_time).send_keys date
     end
 
     def select_technician
       Element.new("aaaa.EntitleClaimView.Technician",
-                  key: :id, wait: @explicit_wait_time).send_keys @secrets['technician_code']
+                  key: :id, wait: @explicit_wait_time).send_keys @secrets[:technician_code]
     end
 
     def enter_authorization_code(code)
       Element.new("aaaa.EntitleClaimView.RMANumber", key: :id, wait: @explicit_wait_time).send_keys code
     end
 
-    def select_service_delivery_type(service_delivery_type = @settings['service_delivery_type'])
+    def select_service_delivery_type(service_delivery_type = @settings[:service_delivery_type])
       Element.new("aaaa.EntitleClaimView.ServiceDeliveryType", key: :id, wait: @explicit_wait_time).send_keys service_delivery_type
     end
 
@@ -270,7 +270,7 @@ module LenovoWarrantyScraper
       errors = nil
       begin
         errors = read_errors
-        if errors.include? @settings['errors']['service_delivery_type_not_authorized']
+        if errors.include? @settings[:errors:][:service_delivery_type_not_authorized]
           select_service_delivery_type("Carry-in")
         end
         sleep(@explicit_wait_time)
@@ -295,7 +295,7 @@ module LenovoWarrantyScraper
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[1]/th/table/tbody/tr/td/div/span")
       headings_cells.each { |cell| headings << cell.text }
 
-      search_field_index = (headings.index @settings['part_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
+      search_field_index = (headings.index @settings[:part_search_field]) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
 
       parts.each do |part|
         sleep(@explicit_wait_time)
@@ -326,7 +326,7 @@ module LenovoWarrantyScraper
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.CustomerSelectPopupView.CustomerTable-contentTBody\"]//tr[1]/td/div/span/span")
       headings_cells.each { |cell| headings << cell.text }
 
-      search_field_index = (headings.index @settings['customer_search_field']) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
+      search_field_index = (headings.index @settings[:customer_search_field]) + 2 # One for table index being one based instead of zero based. Another one because the first column is a blank cell
 
       search_field = @driver.find_element(xpath: "//*[@id=\"aaaa.CustomerSelectPopupView.CustomerTable-contentTBody\"]//tr[2]/td[#{search_field_index}]/table/tbody/tr/td/input")
       search_field.send_keys customer, :return
@@ -341,17 +341,17 @@ module LenovoWarrantyScraper
 
 
     def enter_ticket_number(ticket_number = nil)
-      ticket_number = @secrets['tcket_number'] if ticket_number.nil?
+      ticket_number = @secrets[:ticket_number] if ticket_number.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys ticket_number
     end
 
     def enter_failure_description(failure_description = nil)
-      failure_description = @secrets['failure_description'] if failure_description.nil?
+      failure_description = @secrets[:failure_description] if failure_description.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys failure_description
     end
 
     def enter_comments(comments = nil)
-      comments = @secrets['comments'] if comments.nil?
+      comments = @secrets[:comments] if comments.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys comments
     end
 
@@ -368,7 +368,7 @@ module LenovoWarrantyScraper
     end
 
     def date_is_not_past(date)
-      date = Time.strptime(date, @settings['date_format'])
+      date = Time.strptime(date, @settings[:date_format])
       date >= Time.now
     end
 
@@ -378,5 +378,8 @@ module LenovoWarrantyScraper
   end
 
   class ExceedsServiceDateThreshold < StandardError
+  end
+
+  class ApiError < StandardError
   end
 end

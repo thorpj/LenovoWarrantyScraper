@@ -20,11 +20,11 @@ module LenovoWarrantyScraper
     end
 
     def input_csv_path
-      File.join(root_path, @settings['input_csv_path'])
+      File.join(root_path, @settings[:input_csv_path])
     end
 
     def state_csv_path
-      File.join(root_path, @settings['state_csv_path'])
+      File.join(root_path, @settings[:state_csv_path])
     end
 
     def load_input_file

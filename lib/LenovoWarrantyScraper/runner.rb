@@ -17,9 +17,14 @@ module LenovoWarrantyScraper
 
     def single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
       service_type = 'CLW'
-      @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
-      warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type)
-      warranty_reference
+
+      begin
+        @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
+        warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type)
+        warranty_reference
+      rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::ObsoleteElementError, Selenium::WebDriver::Error::UnhandledError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError
+        Raise ApiError
+      end
     end
 
     def run
@@ -33,7 +38,7 @@ module LenovoWarrantyScraper
     end
 
     def failure_sleep(attempts)
-      time = @settings['failure_sleep_times'][attempts]
+      time = @settings[:failure_sleep_times][attempts]
       sleep(time)
     end
 
@@ -54,7 +59,7 @@ module LenovoWarrantyScraper
       warranty_reference = @state_manager.get_attribute(@serial_number, 'warranty_reference')
       if status != 'submitted' || warranty_reference.nil?
         $logger.debug "Lodging claim"
-        while attempts < @settings['max_attempts']
+        while attempts < @settings[:max_attempts]
           begin
             @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
             warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
