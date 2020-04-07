@@ -270,7 +270,7 @@ module LenovoWarrantyScraper
       errors = nil
       begin
         errors = read_errors
-        if errors.include? @settings[:errors:][:service_delivery_type_not_authorized]
+        if errors.include? @settings[:errors][:service_delivery_type_not_authorized]
           select_service_delivery_type("Carry-in")
         end
         sleep(@explicit_wait_time)
