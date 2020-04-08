@@ -24,7 +24,7 @@ module LenovoWarrantyScraper
         warranty_reference
       rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::ObsoleteElementError, Selenium::WebDriver::Error::UnhandledError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError, StandardError => e
         $logger.debug e.backtrace
-        @scraper.quit
+        @scraper.quit if @scraper.respond_to? :quit
         raise ApiError
       end
     end
