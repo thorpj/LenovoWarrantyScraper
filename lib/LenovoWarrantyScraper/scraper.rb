@@ -61,7 +61,7 @@ module LenovoWarrantyScraper
     # end
 
     def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
-      puts "Processing: #{serial_number} #{parts} #{ticket_number} #{failure_description} #{comments}"
+      puts "Processing: #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments}}"
       navigate_to_url
       login_form
       external_claim_admin_tab
@@ -381,5 +381,9 @@ module LenovoWarrantyScraper
   end
 
   class ApiError < StandardError
+    attr_reader :message
+    def initialize(message)
+      @message = message
+    end
   end
 end
