@@ -1,4 +1,4 @@
-:headless: true
+:headless: false
 :service_type: 'Customer Ltd Warranty'
 :service_delivery_type: "On-Site"
 :customer_search_field: 'Company'
