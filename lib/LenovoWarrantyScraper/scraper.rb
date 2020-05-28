@@ -50,6 +50,7 @@ module LenovoWarrantyScraper
         else
           service_type = 'CLW'
           select_service_type(service_type)
+        end
       end
       enter_serial_number(serial_number)
       select_service_date
