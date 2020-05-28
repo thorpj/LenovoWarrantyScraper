@@ -317,7 +317,7 @@ module LenovoWarrantyScraper
     def submit_claim
       Element.new("aaaa.ClaimCompleAndSubmitView.Submit", key: :id, wait: @explicit_wait_time).click
       switch_to_popup_iframe
-      continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath)
+      continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath, wait: @explicit_wait_time)
       continue_button.click
       switch_to_external_claim_admin_iframe
     end
