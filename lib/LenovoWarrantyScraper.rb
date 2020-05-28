@@ -28,8 +28,7 @@ module LenovoWarrantyScraper
     runner.run
   end
 
-  #LenovoWarrantyScraper.single_claim(LenovoWarrantyScraper.load_secrets, LenovoWarrantyScraper.load_settings, 'R90T4Z94', 'Churchlands', 'T2020', '01FR030', 'Device not charging', 'Updated BIOS, Tested charger with spare device - not working, tested spare charger with customer device working')
-  def self.single_claim(secrets, settings, serial_number, account, ticket_number, parts, failure_description, comments)
+  def self.single_claim(secrets, settings, serial_number, account, ticket_number, parts, failure_description, comments, service_type='CLW', authorization_code=nil)
     if !(parts.is_a?(Array))
       if parts.is_a?(String)
         parts = parts.split(' ')
@@ -39,7 +38,7 @@ module LenovoWarrantyScraper
     end
 
     runner = LenovoWarrantyScraper::Runner.new(secrets, settings)
-    warranty_reference = runner.single_claim(serial_number, account, ticket_number, parts, failure_description, comments)
+    warranty_reference = runner.single_claim(serial_number, account, ticket_number, parts, failure_description, comments, service_type, authorization_code)
     warranty_reference
   end
 

@@ -37,36 +37,20 @@ module LenovoWarrantyScraper
       @driver.switch_to.frame @driver.find_element(id: "URLSPW-0")
     end
 
-    # def make_claim(serial_number)
-    #   navigate_to_url
-    #   login_form
-    #   external_claim_admin_tab
-    #   select_location
-    #   select_service_type
-    #   enter_serial_number(serial_number)
-    #   select_service_date
-    #   select_technician
-    #   select_service_delivery_type
-    #   select_external_claim_admin_continue
-    #   select_external_claim_admin_confirm_continune
-    #   select_customer
-    #   enter_ticket_number
-    #   enter_failure_description
-    #   enter_comments
-    #   submit_claim if @settings['submit_claim']
-    #   warranty_reference = read_warranty_reference
-    #   quit
-    #
-    #   warranty_reference
-    # end
-
-    def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
+    def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type, authorization_code=nil)
       puts "Processing: #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments}}"
       navigate_to_url
       login_form
       external_claim_admin_tab
       select_location
       select_service_type(service_type)
+      if service_type == 'ADP'
+        if authorization_code.present?
+          enter_authorization_code(authorization_code)
+        else
+          service_type = 'CLW'
+          select_service_type(service_type)
+      end
       enter_serial_number(serial_number)
       select_service_date
       select_technician
@@ -83,39 +67,8 @@ module LenovoWarrantyScraper
       warranty_reference = read_warranty_reference
       puts warranty_reference
       quit
-
       warranty_reference
     end
-
-
-    # def test(serial_number)
-    #   navigate_to_url
-    #   login_form
-    #   external_claim_admin_tab
-    #   select_location
-    #   select_service_type
-    #   begin
-    #     enter_serial_number(serial_number)
-    #   rescue LenovoWarrantyScraper::OutOfWarrantyError
-    #
-    #   end
-    #   select_service_date
-    #   select_technician
-    #   select_service_delivery_type
-    #   select_external_claim_admin_continue
-    #
-    #   errors = read_errors
-    #
-    #   $logger.debug "Errors:"
-    #   errors.each { |error| $logger.debug error }
-    #
-    #   if errors.include? @settings['errors']['exceeds_service_date_threshold']
-    #
-    #   end
-    #
-    #   quit
-    # end
-
 
     def quit
       @driver.quit
@@ -310,6 +263,9 @@ module LenovoWarrantyScraper
         sleep(@explicit_wait_time)
         search_field.clear
       end
+
+    rescue => error
+      raise PartNotFoundError.new("#{parts} #{error.message}")
     end
 
     # Continue button on parts select page
@@ -333,6 +289,8 @@ module LenovoWarrantyScraper
 
       Element.new("aaaa.CustomerSelectPopupView.SelectButton", key: :id, wait: @explicit_wait_time).click
       switch_to_external_claim_admin_iframe
+    rescue => error
+      raise AccountNotFoundError.new("#{customer} #{error.message}")
     end
 
     def select_ship_to_location
@@ -371,19 +329,26 @@ module LenovoWarrantyScraper
       date = Time.strptime(date, @settings[:date_format])
       date >= Time.now
     end
-
   end
 
-  class OutOfWarrantyError < StandardError
-  end
 
-  class ExceedsServiceDateThreshold < StandardError
-  end
 
   class ApiError < StandardError
     attr_reader :message
     def initialize(message)
       @message = message
     end
+  end
+
+  class OutOfWarrantyError < StandardError
+  end
+
+  class ExceedsServiceDateThresholdError < StandardError
+  end
+
+  class AccountNotFoundError < StandardError
+  end
+
+  class PartNotFoundError < StandardError
   end
 end
