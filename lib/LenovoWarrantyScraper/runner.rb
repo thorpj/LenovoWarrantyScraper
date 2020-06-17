@@ -23,7 +23,7 @@ module LenovoWarrantyScraper
       rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::StaleElementReferenceError, Selenium::WebDriver::Error::UnknownError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError, StandardError => e
         $logger.debug e.backtrace
         @scraper.quit if @scraper&.respond_to? :quit
-        raise ApiError.new "Claim Failed: #{e.inspect} #{e.message} #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, account: customer}}"
+        raise ApiError.new "Claim Failed: #{e.inspect} #{e.message} #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, account: customer}}\nBacktrace\n#{e.backtrace.join("\n")}"
       end
     end
 
