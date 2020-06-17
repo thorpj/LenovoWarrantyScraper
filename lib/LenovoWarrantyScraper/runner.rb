@@ -15,15 +15,15 @@ module LenovoWarrantyScraper
       @serial_number = nil
     end
 
-    def single_claim(serial_number, account, ticket_number, parts, failure_description, comments, service_type='CLW', authorization_code=nil)
+    def single_claim(serial_number:, customer:, ticket_number:, parts:, failure_description:, comments:, service_type: 'CLW', authorization_code: nil, doa_warranty_reference: nil)
       begin
         @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
-        warranty_reference = @scraper.make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, account, service_type, authorization_code)
+        warranty_reference = @scraper.make_adp_clw_claim(serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, customer: customer, service_type: service_type, authorization_code: authorization_code, doa_warranty_reference: doa_warranty_reference)
         warranty_reference
       rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::StaleElementReferenceError, Selenium::WebDriver::Error::UnknownError, Selenium::WebDriver::Error::ExpectedError, Selenium::WebDriver::Error::NoSuchWindowError, Selenium::WebDriver::Error::InvalidSessionIdError, StandardError => e
         $logger.debug e.backtrace
         @scraper.quit if @scraper&.respond_to? :quit
-        raise ApiError.new "Claim Failed: #{e.inspect} #{e.message} #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, account: account}}"
+        raise ApiError.new "Claim Failed: #{e.inspect} #{e.message} #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, account: customer}}"
       end
     end
 
@@ -62,7 +62,7 @@ module LenovoWarrantyScraper
         while attempts < @settings[:max_attempts]
           begin
             @scraper = LenovoWarrantyScraper::Scraper.new(@secrets, @settings)
-            warranty_reference = @scraper.make_adp_clw_claim(@serial_number, parts, ticket_number, failure_description, comments, customer, service_type)
+            warranty_reference = @scraper.make_adp_clw_claim(serial_number: @serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, customer: customer, service_type: service_type, authorization_code: nil, doa_warranty_reference: nil)
             unless warranty_reference.nil? || warranty_reference == ''
               update_status(:submitted)
               update_warranty_reference(warranty_reference)

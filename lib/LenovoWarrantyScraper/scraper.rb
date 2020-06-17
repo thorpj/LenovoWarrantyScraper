@@ -37,7 +37,7 @@ module LenovoWarrantyScraper
       @driver.switch_to.frame @driver.find_element(id: "URLSPW-0")
     end
 
-    def make_adp_clw_claim(serial_number, parts, ticket_number, failure_description, comments, customer, service_type, authorization_code=nil)
+    def make_adp_clw_claim(serial_number:, parts:, ticket_number:, failure_description:, comments:, customer:, service_type:, doa_warranty_reference: nil, authorization_code: nil)
       puts "Processing: #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments}}"
       navigate_to_url
       login_form
@@ -45,28 +45,35 @@ module LenovoWarrantyScraper
       select_location
       select_service_type(service_type)
       if service_type == 'ADP'
-        if authorization_code.present?
-          enter_authorization_code(authorization_code)
-        else
-          service_type = 'CLW'
-          select_service_type(service_type)
-        end
+        enter_authorization_code(authorization_code)
       end
-      enter_serial_number(serial_number)
-      select_service_date
-      select_technician
-      select_service_delivery_type
+      if service_type == 'DOA'
+        enter_doa_warranty_reference(doa_warranty_reference)
+      else
+        enter_serial_number(serial_number)
+        select_service_date
+        select_technician
+        select_service_delivery_type
+      end
       select_external_claim_admin_continue
       select_parts(parts)
       select_external_claim_admin_confirm_continune
-      select_customer(customer)
-      select_ship_to_location
-      enter_ticket_number(ticket_number)
-      enter_failure_description(failure_description)
-      enter_comments(comments)
+
+      if service_type == 'DOA'
+        enter_ticket_number(ticket_number)
+        enter_doa_failure_description(failure_description)
+        enter_doa_comments(comments)
+      else
+        select_customer(customer)
+        select_ship_to_location
+        enter_ticket_number(ticket_number)
+        enter_failure_description(failure_description)
+        enter_comments(comments)
+      end
+
       submit_claim if @settings[:submit_claim]
       warranty_reference = read_warranty_reference
-      puts warranty_reference
+      puts "Submitted claim: #{warranty_reference}"
       quit
       warranty_reference
     end
@@ -113,6 +120,10 @@ module LenovoWarrantyScraper
         service_type = "Labour Only Claim"
       end
       Element.new("aaaa.EntitleClaimView.ServiceType", key: :id, wait: @explicit_wait_time).send_keys service_type
+    end
+
+    def enter_doa_warranty_reference(doa_warranty_reference)
+      Element.new('aaaa.EntitleClaimView.OriginalClaimNumber', key: :id, wait: @explicit_wait_time).send_keys(doa_warranty_reference)
     end
 
     def enter_serial_number(serial_number)
@@ -244,6 +255,12 @@ module LenovoWarrantyScraper
       switch_to_external_claim_admin_iframe
     end
 
+    def select_top_part
+      field = @driver.find_element(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[3]/td[3]/span")
+      sleep(@explicit_wait_time)
+      field.click
+    end
+
     def select_parts(parts)
       headings = []
       headings_cells = @driver.find_elements(xpath: "//*[@id=\"aaaa.EntitlementResultsView.Table_-contentTBody\"]//tr[1]/th/table/tbody/tr/td/div/span")
@@ -300,17 +317,26 @@ module LenovoWarrantyScraper
 
 
     def enter_ticket_number(ticket_number = nil)
-      ticket_number = @secrets[:ticket_number] if ticket_number.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.BPClaimRefID", key: :id, wait: @explicit_wait_time).send_keys ticket_number
     end
 
     def enter_failure_description(failure_description = nil)
-      failure_description = @secrets[:failure_description] if failure_description.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time).send_keys failure_description
     end
 
+    def enter_doa_failure_description(failure_description = nil)
+      element = Element.new("aaaa.ClaimCompleAndSubmitView.FailDescTextEdit", key: :id, wait: @explicit_wait_time)
+      element.clear
+      element.send_keys failure_description
+    end
+
+    def enter_doa_comments(comments = nil)
+      element = Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time)
+      element.clear
+      element.send_keys comments
+    end
+
     def enter_comments(comments = nil)
-      comments = @secrets[:comments] if comments.nil?
       Element.new("aaaa.ClaimCompleAndSubmitView.TextEdit1", key: :id, wait: @explicit_wait_time).send_keys comments
     end
 

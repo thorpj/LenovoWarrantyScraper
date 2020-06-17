@@ -28,8 +28,8 @@ module LenovoWarrantyScraper
     runner.run
   end
 
-  def self.single_claim(secrets, settings, serial_number, account, ticket_number, parts, failure_description, comments, service_type='CLW', authorization_code=nil)
-    if !(parts.is_a?(Array))
+  def self.single_claim(secrets:, settings:, serial_number:, parts:, ticket_number:, failure_description:, comments:, customer:, service_type:, doa_warranty_reference: nil, authorization_code: nil)
+    unless parts.is_a?(Array)
       if parts.is_a?(String)
         parts = parts.split(' ')
       else
@@ -38,7 +38,7 @@ module LenovoWarrantyScraper
     end
 
     runner = LenovoWarrantyScraper::Runner.new(secrets, settings)
-    warranty_reference = runner.single_claim(serial_number, account, ticket_number, parts, failure_description, comments, service_type, authorization_code)
+    warranty_reference = runner.single_claim(serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments, customer: customer, service_type: service_type, authorization_code: authorization_code, doa_warranty_reference: doa_warranty_reference)
     warranty_reference
   end
 
@@ -51,6 +51,4 @@ module LenovoWarrantyScraper
     path = File.expand_path(File.join(File.dirname(__dir__), 'config/settings.yaml'))
     YAML.load_file(path)
   end
-
-
 end
