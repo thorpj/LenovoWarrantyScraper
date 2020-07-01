@@ -124,6 +124,7 @@ module LenovoWarrantyScraper
 
     def enter_doa_warranty_reference(doa_warranty_reference)
       Element.new('aaaa.EntitleClaimView.OriginalClaimNumber', key: :id, wait: @explicit_wait_time).send_keys(doa_warranty_reference)
+      Element.new("//span[text()='Confirm']/..").click
     end
 
     def enter_serial_number(serial_number)
@@ -284,7 +285,7 @@ module LenovoWarrantyScraper
       end
 
     rescue => error
-      raise PartNotFoundError.new("#{parts} #{error.message}")
+      raise PartNotFoundError.new("#{parts} #{error.message}\nBacktrace:\n#{error.backtrace.join("\n")}")
     end
 
     # Continue button on parts select page
