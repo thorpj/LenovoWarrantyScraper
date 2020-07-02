@@ -16,6 +16,10 @@ class Element
     @element.click
   end
 
+  def clear
+    @element.clear
+  end
+
   def send_keys(text)
     @element.send_keys(text)
   end

@@ -10,3 +10,4 @@ config/secrets.yaml
 .idea/
 config/*.csv
 app.log
+.byebug_history
