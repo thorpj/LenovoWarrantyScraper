@@ -351,6 +351,7 @@ module LenovoWarrantyScraper
     end
 
     def read_warranty_reference
+      sleep(@explicit_wait_time)
       Element.new("//*[@id='aaaa.ClaimConfirmationView.ClaimNumber']", key: :xpath, wait: @explicit_wait_time).read_text
     end
 
