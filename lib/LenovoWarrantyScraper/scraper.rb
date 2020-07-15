@@ -71,10 +71,16 @@ module LenovoWarrantyScraper
         enter_comments(comments)
       end
 
-      submit_claim if @settings[:submit_claim]
-      warranty_reference = read_warranty_reference
-      puts "Submitted claim: #{warranty_reference}"
-      quit
+      begin
+        submit_claim if @settings[:submit_claim]
+        warranty_reference = read_warranty_reference
+        puts "Submitted claim: #{warranty_reference}"
+        quit
+      rescue => error
+        puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
+        puts "Claim submitted, but unable to read warranty reference"
+        warranty_reference = '0000000000'
+      end
       warranty_reference
     end
 
@@ -351,7 +357,6 @@ module LenovoWarrantyScraper
     end
 
     def read_warranty_reference
-      sleep(@explicit_wait_time)
       Element.new("//*[@id='aaaa.ClaimConfirmationView.ClaimNumber']", key: :xpath, wait: @explicit_wait_time).read_text
     end
 
