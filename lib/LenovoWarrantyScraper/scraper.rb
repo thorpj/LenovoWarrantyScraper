@@ -7,7 +7,8 @@ module LenovoWarrantyScraper
       @secrets = secrets
       @settings = settings
       @url = @settings[:url]
-
+      @submitted = false
+      @warranty_reference = nil
       if @settings[:headless]
         options = Selenium::WebDriver::Firefox::Options.new(args: ['-headless'])
         @driver = Selenium::WebDriver.for(:firefox, options: options)
@@ -72,16 +73,28 @@ module LenovoWarrantyScraper
       end
 
       begin
-        submit_claim if @settings[:submit_claim]
-        warranty_reference = read_warranty_reference
+        begin
+          submit_claim if @settings[:submit_claim]
+        rescue => error
+          puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
+          puts "Resubmitting claim"
+          submit_claim unless @submitted
+        end
+
+        begin
+          @warranty_reference = read_warranty_reference
+        rescue => error
+          puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
+          @warranty_reference = read_warranty_reference
+        end
         puts "Submitted claim: #{warranty_reference}"
         quit
       rescue => error
         puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
         puts "Claim submitted, but unable to read warranty reference"
-        warranty_reference = '0000000000'
+        @warranty_reference = '0000000000'
       end
-      warranty_reference
+      @warranty_reference
     end
 
     def quit
@@ -349,9 +362,11 @@ module LenovoWarrantyScraper
     end
 
     def submit_claim
+      sleep(@explicit_wait_time)
       Element.new("aaaa.ClaimCompleAndSubmitView.Submit", key: :id, wait: @explicit_wait_time).click
       switch_to_popup_iframe
       continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath, wait: @explicit_wait_time)
+      @submitted = true
       continue_button.click
       switch_to_external_claim_admin_iframe
     end
