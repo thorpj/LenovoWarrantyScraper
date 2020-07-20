@@ -87,7 +87,7 @@ module LenovoWarrantyScraper
           puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
           @warranty_reference = read_warranty_reference
         end
-        puts "Submitted claim: #{warranty_reference}"
+        puts "Submitted claim: #{@warranty_reference}"
         quit
       rescue => error
         puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
