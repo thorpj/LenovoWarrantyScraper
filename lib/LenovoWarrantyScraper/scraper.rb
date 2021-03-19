@@ -39,7 +39,14 @@ module LenovoWarrantyScraper
     end
 
     def make_adp_clw_claim(serial_number:, parts:, ticket_number:, failure_description:, comments:, customer:, service_type:, doa_warranty_reference: nil, authorization_code: nil)
-      puts "Processing: #{{serial_number: serial_number, parts: parts, ticket_number: ticket_number, failure_description: failure_description, comments: comments}}"
+      puts details_message
+      @serial_number = serial_number
+      @customer = customer
+      @ticket_number = ticket_number
+      @parts = parts
+      @failure_description = failure_description
+      @comments = comments
+      @service_type = service_type
       navigate_to_url
       login_form
       external_claim_admin_tab
@@ -218,7 +225,7 @@ module LenovoWarrantyScraper
       end
       in_warranty = date_is_not_past(latest_warranty_item['End Date'])
       unless in_warranty
-        raise LenovoWarrantyScraper::OutOfWarrantyError
+        raise LenovoWarrantyScraper::OutOfWarrantyError.new(details_message)
       end
       index = (latest_warranty_item['index']).to_s
       Element.new("//*[@id=\"aaaa.ProductSelectPopupView.ProductListTable-contentTBody\"]//tr[#{index}]/td[7]/span", key: :xpath).click
@@ -269,8 +276,8 @@ module LenovoWarrantyScraper
       begin
         switch_to_popup_iframe
         continue_button = Element.new("//table[@class=\"urPWButtonTable\"]/tbody/tr/td[1]/a", key: :xpath)
-        continue_button.click
       rescue
+        ExistingClaimError.new("Claim already exists for this serial. #{details_message}\n")
       ensure
         switch_to_external_claim_admin_iframe
       end
@@ -304,7 +311,7 @@ module LenovoWarrantyScraper
       end
 
     rescue => error
-      raise PartNotFoundError.new("#{parts} #{error.message}\nBacktrace:\n#{error.backtrace.join("\n")}")
+      raise PartNotFoundError.new(details_message(error: error))
     end
 
     # Continue button on parts select page
@@ -329,7 +336,7 @@ module LenovoWarrantyScraper
       Element.new("aaaa.CustomerSelectPopupView.SelectButton", key: :id, wait: @explicit_wait_time).click
       switch_to_external_claim_admin_iframe
     rescue => error
-      raise AccountNotFoundError.new("#{customer} #{error.message}")
+      raise AccountNotFoundError.new(details_message(error: error))
     end
 
     def select_ship_to_location
@@ -379,14 +386,17 @@ module LenovoWarrantyScraper
       date = Time.strptime(date, @settings[:date_format])
       date >= Time.now
     end
+
+    def details_message(error: nil)
+      error_message = error.nil? ? '' : "#{error.inspect} #{error.message}"
+      "#{error_message}{#{{serial_number: @serial_number, parts: @parts, ticket_number: @ticket_number, failure_description: @failure_description, comments: @comments, account: @customer}}}"
+    end
   end
-
-
 
   class ApiError < StandardError
     attr_reader :message
     def initialize(message)
-      @message = message
+      @message = "\nError: #{inspect}\n#{message}"
     end
   end
 
@@ -400,5 +410,8 @@ module LenovoWarrantyScraper
   end
 
   class PartNotFoundError < StandardError
+  end
+
+  class ExistingClaimError < StandardError
   end
 end
