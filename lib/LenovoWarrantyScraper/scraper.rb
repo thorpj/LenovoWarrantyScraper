@@ -400,18 +400,18 @@ module LenovoWarrantyScraper
     end
   end
 
-  class OutOfWarrantyError < StandardError
+  class OutOfWarrantyError < ApiError
+
+  end
+  class ExceedsServiceDateThresholdError < ApiError
   end
 
-  class ExceedsServiceDateThresholdError < StandardError
+  class AccountNotFoundError < ApiError
   end
 
-  class AccountNotFoundError < StandardError
+  class PartNotFoundError < ApiError
   end
 
-  class PartNotFoundError < StandardError
-  end
-
-  class ExistingClaimError < StandardError
+  class ExistingClaimError < ApiError
   end
 end
