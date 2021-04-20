@@ -38,6 +38,47 @@ module LenovoWarrantyScraper
       @driver.switch_to.frame @driver.find_element(id: "URLSPW-0")
     end
 
+    def labour_only_claim(serial_number:, ticket_number:, failure_description:, comments:, customer:)
+      @serial_number = serial_number
+      @customer = customer
+      @ticket_number = ticket_number
+      @failure_description = failure_description
+      @comments = comments
+      @serial_number = 'LOC'
+      navigate_to_url
+      login_form
+      external_claim_admin_tab
+      select_location
+      select_service_type(@service_type)
+      enter_serial_number(serial_number)
+      select_service_date
+      select_technician
+      select_service_delivery_type
+      select_external_claim_admin_continue
+      select_external_claim_admin_confirm_continune
+      select_customer(customer)
+      enter_ticket_number(ticket_number)
+      enter_failure_description(failure_description)
+      enter_comments(comments)
+
+      begin
+        submit_claim if @settings[:submit_claim]
+        begin
+          @warranty_reference = read_warranty_reference
+        rescue => error
+          puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
+          @warranty_reference = read_warranty_reference
+        end
+        puts "Submitted claim: #{@warranty_reference}"
+        quit
+      rescue => error
+        puts "#{error.inspect}\n#{error.message}\nBacktrace\n#{error.backtrace.join("\n")}"
+        puts "Claim submitted, but unable to read warranty reference"
+        @warranty_reference = '0000000000'
+      end
+      @warranty_reference
+    end
+
     def make_adp_clw_claim(serial_number:, parts:, ticket_number:, failure_description:, comments:, customer:, service_type:, doa_warranty_reference: nil, authorization_code: nil)
       puts details_message
       @serial_number = serial_number
