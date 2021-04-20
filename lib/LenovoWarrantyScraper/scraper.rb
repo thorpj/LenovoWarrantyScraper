@@ -44,12 +44,11 @@ module LenovoWarrantyScraper
       @ticket_number = ticket_number
       @failure_description = failure_description
       @comments = comments
-      @serial_number = 'LOC'
       navigate_to_url
       login_form
       external_claim_admin_tab
       select_location
-      select_service_type(@service_type)
+      select_service_type('LOC')
       enter_serial_number(serial_number)
       select_service_date
       select_technician
